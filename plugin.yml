@@ -1,8 +1,8 @@
 ---
-name: PluginName
-main: kim\present\pluginname\Main
+name: ResourcePackCdn
+main: kim\present\resourcepackcdn\Main
 version: 0.0.1
 api: [ 5.0.0 ]
 author: PresentKim
-description: Description of Plugin
+description: Automatically add resource packs in the server resource_packs directory to the cdn urls
 ...

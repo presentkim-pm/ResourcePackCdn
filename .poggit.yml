@@ -2,7 +2,7 @@
 branches:
   - main
 projects:
-  PluginName:
+  ResourcePackCdn:
     path: ""
     icon: "assets/icon.png"
 ...
