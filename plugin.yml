@@ -1,7 +1,7 @@
 ---
 name: ResourcePackCdn
 main: kim\present\resourcepackcdn\Main
-version: 1.0.0
+version: 1.0.1
 api: [ 5.0.0 ]
 author: PresentKim
 description: Automatically link resource packs to cdn urls!
