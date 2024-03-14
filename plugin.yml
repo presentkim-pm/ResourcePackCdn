@@ -4,5 +4,5 @@ main: kim\present\resourcepackcdn\Main
 version: 0.0.1
 api: [ 5.0.0 ]
 author: PresentKim
-description: Automatically add resource packs in the server resource_packs directory to the cdn urls
+description: Automatically link resource packs to cdn urls!
 ...
