@@ -42,58 +42,59 @@ use function strrchr;
 use function substr;
 
 final class Main extends PluginBase implements Listener{
-	/** @var string[] */
-	private array $cdnUrls = [];
 
-	private string $cdnBaseUrl;
-	private string $cdnBaseDir;
-	private bool $removeExtension;
+    /** @var string[] */
+    private array $cdnUrls = [];
 
-	protected function onEnable() : void{
-		$config = $this->getConfig();
-		$serverDir = $this->getServer()->getDataPath();
-		$this->cdnBaseUrl = rtrim($config->get("base_url", "https://cdn.example.com/"), "/") . "/";
-		$this->cdnBaseDir = rtrim(Path::join($serverDir, $config->get("base_dir", "./resource_packs")), "/") . "/";
-		$this->removeExtension = (bool) $config->get("remove_extension", false);
+    private string $cdnBaseUrl;
+    private string $cdnBaseDir;
+    private bool $removeExtension;
 
-		$this->getServer()->getPluginManager()->registerEvents($this, $this);
+    protected function onEnable() : void{
+        $config = $this->getConfig();
+        $serverDir = $this->getServer()->getDataPath();
+        $this->cdnBaseUrl = rtrim($config->get("base_url", "https://cdn.example.com/"), "/") . "/";
+        $this->cdnBaseDir = rtrim(Path::join($serverDir, $config->get("base_dir", "./resource_packs")), "/") . "/";
+        $this->removeExtension = (bool) $config->get("remove_extension", false);
 
-		// Run matching immediately to check for resource packs added before this plugin.
-		$this->matchPackInCdnDir();
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
 
-		// Run matching after 1 tick to check for resource packs added later than this plugin.
-		$this->getScheduler()->scheduleDelayedTask(new ClosureTask(fn() => $this->matchPackInCdnDir()), 1);
-	}
+        // Run matching immediately to check for resource packs added before this plugin.
+        $this->matchPackInCdnDir();
 
-	private function matchPackInCdnDir() : void{
-		$resourcePackManager = $this->getServer()->getResourcePackManager();
-		foreach($resourcePackManager->getResourceStack() as $pack){
-			if(
-				$pack instanceof ZippedResourcePack
-				&& Path::isBasePath($this->cdnBaseDir, $pack->getPath())
-			){
-				$uuid = $pack->getPackId();
-				$version = $pack->getPackVersion();
-				$key = $uuid . "_" . $version;
-				if(isset($this->cdnUrls[$key])){
-					continue;
-				}
-				$cdnUrl = $this->cdnBaseUrl . Path::makeRelative($pack->getPath(), $this->cdnBaseDir);
-				if($this->removeExtension){
-					$cdnUrl = substr($cdnUrl, 0, -strlen(strrchr($cdnUrl, ".")));
-				}
-				$this->getLogger()->info("Registered CDN URL for {$pack->getPackName()}_v$version ($uuid) : $cdnUrl");
-				$this->cdnUrls[$key] = $cdnUrl;
-			}
-		}
-	}
+        // Run matching after 1 tick to check for resource packs added later than this plugin.
+        $this->getScheduler()->scheduleDelayedTask(new ClosureTask(fn() => $this->matchPackInCdnDir()), 1);
+    }
 
-	/** @priority HIGHEST */
-	public function onDataPacketSend(DataPacketSendEvent $event) : void{
-		foreach($event->getPackets() as $packet){
-			if($packet instanceof ResourcePacksInfoPacket){
-				$packet->cdnUrls = array_merge($this->cdnUrls, $packet->cdnUrls);
-			}
-		}
-	}
+    private function matchPackInCdnDir() : void{
+        $resourcePackManager = $this->getServer()->getResourcePackManager();
+        foreach($resourcePackManager->getResourceStack() as $pack){
+            if(
+                $pack instanceof ZippedResourcePack
+                && Path::isBasePath($this->cdnBaseDir, $pack->getPath())
+            ){
+                $uuid = $pack->getPackId();
+                $version = $pack->getPackVersion();
+                $key = $uuid . "_" . $version;
+                if(isset($this->cdnUrls[$key])){
+                    continue;
+                }
+                $cdnUrl = $this->cdnBaseUrl . Path::makeRelative($pack->getPath(), $this->cdnBaseDir);
+                if($this->removeExtension){
+                    $cdnUrl = substr($cdnUrl, 0, -strlen(strrchr($cdnUrl, ".")));
+                }
+                $this->getLogger()->info("Registered CDN URL for {$pack->getPackName()}_v$version ($uuid) : $cdnUrl");
+                $this->cdnUrls[$key] = $cdnUrl;
+            }
+        }
+    }
+
+    /** @priority HIGHEST */
+    public function onDataPacketSend(DataPacketSendEvent $event) : void{
+        foreach($event->getPackets() as $packet){
+            if($packet instanceof ResourcePacksInfoPacket){
+                $packet->cdnUrls = array_merge($this->cdnUrls, $packet->cdnUrls);
+            }
+        }
+    }
 }
